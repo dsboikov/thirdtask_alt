@@ -7,15 +7,14 @@ from urllib.parse import urlparse
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-#SECRET_KEY = 'django-insecure-2#8^u++le-(x*i^87l&1frd64&m@w-t*5hx=8^nk%w$x@%u1^y'
+# SECRET_KEY = 'django-insecure-2#8^u++le-(x*i^87l&1frd64&m@w-t*5hx=8^nk%w$x@%u1^y'
 # SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = True
-#ALLOWED_HOSTS = []
+# DEBUG = True
+# ALLOWED_HOSTS = []
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-secret-key")
 DEBUG = os.environ.get("DEBUG", "1") == "1"
@@ -91,6 +90,7 @@ def parse_database_url(url: str) -> dict:
         "PORT": parsed.port or "5432",
     }
 
+
 if db_url := os.environ.get("DATABASE_URL"):
     DATABASES = {"default": parse_database_url(db_url)}
 else:
@@ -107,8 +107,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
-
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -169,4 +167,3 @@ SESSION_COOKIE_AGE = 60 * 60 * 24 * 14  # 14 дней
 
 LOGIN_REDIRECT_URL = "/account/"
 LOGOUT_REDIRECT_URL = "/"
-
