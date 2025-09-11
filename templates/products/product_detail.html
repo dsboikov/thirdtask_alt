@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-5">
+        {% if product.image %}<img src="{{ product.image.url }}" class="img-fluid" alt="{{ product.name }}">{% endif %}
+    </div>
+    <div class="col-md-7">
+        <h2>{{ product.name }}</h2>
+        <p>{{ product.description }}</p>
+        <p><strong>{{ product.price }} ₽</strong></p>
+        <p>В наличии: {{ product.stock }}</p>
+
+        <form action="{% url 'orders:cart_add' product.id %}" method="post" class="d-flex gap-2">
+            {% csrf_token %}
+            <input type="number" name="quantity" min="1" value="1" class="form-control" style="width:120px">
+            <button class="btn btn-primary" {% if product.stock== 0 %}disabled{% endif %}>Добавить в корзину</button>
+        </form>
+
+        <hr>
+        <h4>Отзывы (ср. рейтинг {{ product.average_rating|floatformat:1 }})</h4>
+        <ul class="list-group mb-3">
+            {% for r in reviews %}
+            <li class="list-group-item">
+                <strong>{{ r.user }}</strong> — Оценка: {{ r.rating }}<br>
+                {{ r.comment }}
+            </li>
+            {% empty %}
+            <li class="list-group-item">Пока нет отзывов.</li>
+            {% endfor %}
+        </ul>
+
+        {% if user.is_authenticated %}
+        <form action="{% url 'add_review' product.slug %}" method="post" class="card card-body">
+            {% csrf_token %}
+            <div class="mb-2">
+                {{ form.rating.label_tag }} {{ form.rating }}
+            </div>
+            <div class="mb-2">
+                {{ form.comment.label_tag }} {{ form.comment }}
+            </div>
+            <button class="btn btn-success">Оставить отзыв</button>
+        </form>
+        {% else %}
+        <p><a href="/login/">Войдите</a>, чтобы оставить отзыв.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

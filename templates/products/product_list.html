@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Каталог</h1>
+<form class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Поиск...">
+    </div>
+    <div class="col-md-2">
+        <input type="number" step="0.01" name="min_price" value="{{ request.GET.min_price }}" class="form-control"
+               placeholder="Мин цена">
+    </div>
+    <div class="col-md-2">
+        <input type="number" step="0.01" name="max_price" value="{{ request.GET.max_price }}" class="form-control"
+               placeholder="Макс цена">
+    </div>
+    <div class="col-md-2">
+        <select name="ordering" class="form-select">
+            <option value="">Сортировка</option>
+            <option value="price">Цена ↑</option>
+            <option value="-price">Цена ↓</option>
+            <option value="new">Новизна</option>
+            <option value="popular">Популярность</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-primary w-100">Применить</button>
+    </div>
+</form>
+<div class="row">
+    {% for p in products %}
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            {% if p.image %}<img src="{{ p.image.url }}" class="card-img-top" alt="{{ p.name }}">{% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ p.name }}</h5>
+                <p class="card-text">{{ p.price }} ₽</p>
+                <a href="{{ p.get_absolute_url }}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>Нет товаров.</p>
+    {% endfor %}
+</div>
+<nav>
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link"
+                                 href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Назад</a>
+        </li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Стр. {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link"
+                                 href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Вперед</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endblock %}
