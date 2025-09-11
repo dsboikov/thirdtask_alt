@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.urls import reverse
 
-User = get_user_model()
 
 
 class TimeStampedModel(models.Model):
@@ -59,7 +58,7 @@ class Product(TimeStampedModel):
 
 class Review(TimeStampedModel):
     product = models.ForeignKey(Product, related_name="reviews", on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name="reviews", on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="reviews", on_delete=models.CASCADE)
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     comment = models.TextField(blank=True)
 
@@ -71,3 +70,4 @@ class Review(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.product} — {self.user} ({self.rating})"
+
