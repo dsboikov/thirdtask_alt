@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.generic import ListView, DetailView
 from rest_framework import viewsets, permissions, mixins, status
 from rest_framework.decorators import action
@@ -57,10 +58,12 @@ class ProductDetailView(DetailView):
     slug_url_kwarg = "slug"
     context_object_name = "product"
 
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+    def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["reviews"] = self.object.reviews.select_related("user")
         ctx["form"] = ReviewForm()
+        # Ссылка назад: если нет Referer — ведём в каталог
+        ctx["back_url"] = self.request.META.get("HTTP_REFERER") or reverse("products:product_list")
         return ctx
 
 
