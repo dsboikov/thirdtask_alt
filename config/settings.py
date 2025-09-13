@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -101,6 +102,11 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+
+db = DATABASES["default"]
+if db["ENGINE"].endswith("postgresql"):
+    db["DISABLE_SERVER_SIDE_CURSORS"] = True
+    db.setdefault("CONN_MAX_AGE", int(os.environ.get("CONN_MAX_AGE", "60")))
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -168,3 +174,5 @@ SESSION_COOKIE_AGE = 60 * 60 * 24 * 14  # 14 дней
 
 LOGIN_REDIRECT_URL = "/account/"
 LOGOUT_REDIRECT_URL = "/"
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"

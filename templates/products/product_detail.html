@@ -13,7 +13,7 @@
         <form action="{% url 'orders:cart_add' product.id %}" method="post" class="d-flex gap-2">
             {% csrf_token %}
             <input type="number" name="quantity" min="1" value="1" class="form-control" style="width:120px">
-            <button class="btn btn-primary" {% if product.stock== 0 %}disabled{% endif %}>Добавить в корзину</button>
+            <button class="btn btn-primary" {% if product.stock == 0 %}disabled{% endif %}>Добавить в корзину</button>
         </form>
 
         <hr>
@@ -30,7 +30,7 @@
         </ul>
 
         {% if user.is_authenticated %}
-        <form action="{% url 'add_review' product.slug %}" method="post" class="card card-body">
+        <form action="{% url 'products:add_review' product.slug %}" method="post" class="card card-body">
             {% csrf_token %}
             <div class="mb-2">
                 {{ form.rating.label_tag }} {{ form.rating }}

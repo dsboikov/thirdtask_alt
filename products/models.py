@@ -48,7 +48,7 @@ class Product(TimeStampedModel):
         return self.name
 
     def get_absolute_url(self) -> str:
-        return reverse("product_detail", kwargs={"slug": self.slug})
+        return reverse("products:product_detail", kwargs={"slug": self.slug})
 
     @property
     def average_rating(self) -> float:

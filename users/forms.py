@@ -2,7 +2,6 @@ from __future__ import annotations
 from django import forms
 from django.contrib.auth.models import User
 
-
 class RegisterForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={"class": "form-control"}))
     password2 = forms.CharField(label="Повторите пароль", widget=forms.PasswordInput(attrs={"class": "form-control"}))
@@ -20,3 +19,4 @@ class RegisterForm(forms.ModelForm):
         if cleaned.get("password") != cleaned.get("password2"):
             self.add_error("password2", "Пароли не совпадают")
         return cleaned
+

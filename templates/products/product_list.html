@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% load static %}
+{% load querystring %}
+
 {% block content %}
 <h1>Каталог</h1>
 <form class="row g-2 mb-3">
@@ -30,7 +33,11 @@
     {% for p in products %}
     <div class="col-md-3 mb-3">
         <div class="card h-100">
-            {% if p.image %}<img src="{{ p.image.url }}" class="card-img-top" alt="{{ p.name }}">{% endif %}
+            {% if p.image %}
+            <a href="{{ p.get_absolute_url }}">
+                <img src="{{ p.image.url }}" class="card-img-top" alt="{{ p.name }}">
+            </a>
+            {% endif %}
             <div class="card-body">
                 <h5 class="card-title">{{ p.name }}</h5>
                 <p class="card-text">{{ p.price }} ₽</p>
@@ -43,19 +50,22 @@
     {% endfor %}
 </div>
 <nav>
-    <ul class="pagination">
-        {% if page_obj.has_previous %}
-        <li class="page-item"><a class="page-link"
-                                 href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">Назад</a>
-        </li>
-        {% endif %}
-        <li class="page-item disabled"><span class="page-link">Стр. {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
-        </li>
-        {% if page_obj.has_next %}
-        <li class="page-item"><a class="page-link"
-                                 href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">Вперед</a>
-        </li>
-        {% endif %}
-    </ul>
+  <ul class="pagination">
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?{% url_replace page=page_obj.previous_page_number %}">Назад</a>
+      </li>
+    {% endif %}
+
+    <li class="page-item disabled">
+      <span class="page-link">Стр. {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+    </li>
+
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?{% url_replace page=page_obj.next_page_number %}">Вперед</a>
+      </li>
+    {% endif %}
+  </ul>
 </nav>
 {% endblock %}

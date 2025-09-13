@@ -35,7 +35,7 @@ def cart_add(request: HttpRequest, product_id: int) -> HttpResponse:
         return redirect(product.get_absolute_url())
     cart.add(product, quantity)
     messages.success(request, "Товар добавлен в корзину.")
-    return redirect("cart_detail")
+    return redirect("orders:cart_detail")
 
 
 def cart_remove(request: HttpRequest, product_id: int) -> HttpResponse:
@@ -43,7 +43,7 @@ def cart_remove(request: HttpRequest, product_id: int) -> HttpResponse:
     product = get_object_or_404(Product, id=product_id)
     cart.remove(product)
     messages.info(request, "Товар удален из корзины.")
-    return redirect("cart_detail")
+    return redirect("orders:cart_detail")
 
 
 @login_required
@@ -51,7 +51,7 @@ def checkout(request: HttpRequest) -> HttpResponse:
     cart = Cart(request)
     if len(cart) == 0:
         messages.warning(request, "Корзина пуста.")
-        return redirect("product_list")
+        return redirect("products:product_list")
     if request.method == "POST":
         form = CheckoutForm(request.POST)
         if form.is_valid():
@@ -60,7 +60,7 @@ def checkout(request: HttpRequest) -> HttpResponse:
             serializer.is_valid(raise_exception=True)
             order = serializer.save()
             messages.success(request, f"Заказ #{order.id} создан. Спасибо!")
-            return redirect("account")
+            return redirect("users:account")
     else:
         form = CheckoutForm()
     return render(request, "checkout/checkout.html", {"cart": cart, "form": form})
