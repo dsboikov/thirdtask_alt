@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, List
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Count  # ← добавили Count
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -21,8 +21,21 @@ from .serializers import (
 from orders.services.cart import Cart
 
 
-# Web views
+# Хэлпер для потомков категории
+def get_descendant_ids(root: Category) -> list[int]:
+    ids: List[int] = [root.id]
+    level = [root.id]
+    while level:
+        children = Category.objects.filter(parent_id__in=level).values_list("id", flat=True)
+        children = list(children)
+        if not children:
+            break
+        ids.extend(children)
+        level = children
+    return ids
 
+
+# Въюхи
 class ProductListView(ListView):
     template_name = "products/product_list.html"
     model = Product
@@ -35,7 +48,7 @@ class ProductListView(ListView):
         q = self.request.GET.get("q")
         if q:
             qs = qs.filter(Q(name__icontains=q) | Q(description__icontains=q))
-        # Фильтры
+        # Фильтры (включая category/id и category_slug)
         f = ProductFilter(self.request.GET, queryset=qs)
         qs = f.qs
         # Сортировка
@@ -47,8 +60,57 @@ class ProductListView(ListView):
         elif ordering == "new":
             qs = qs.order_by("-created_at")
         elif ordering == "popular":
-            qs = qs.annotate(cnt=models.Count("reviews")).order_by("-cnt")
+            qs = qs.annotate(cnt=Count("reviews")).order_by("-cnt")
         return qs
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        ctx = super().get_context_data(**kwargs)
+        ctx["categories"] = Category.objects.all().order_by("name")
+        selected = self.request.GET.get("category")
+        ctx["selected_category_id"] = int(selected) if selected and selected.isdigit() else None
+        ctx["current_category"] = None  # для совместимости с шаблоном
+        return ctx
+
+
+class CategoryListView(ListView):
+    template_name = "products/category_list.html"
+    model = Category
+    context_object_name = "categories"
+
+    def get_queryset(self):
+        # Топ-уровень с prefetch детей (1 уровень для простоты)
+        return Category.objects.filter(parent__isnull=True).prefetch_related("children").order_by("name")
+
+
+class CategoryDetailView(ProductListView):
+    """
+    Страница раздела: использует тот же шаблон и фильтры, но фиксирует базовую выборку по категории и потомкам.
+    """
+
+    def get_queryset(self):
+        self.category = get_object_or_404(Category, slug=self.kwargs["slug"])
+        ids = get_descendant_ids(self.category)
+        base = Product.objects.select_related("category").filter(is_active=True, category_id__in=ids)
+        # Применяем остальные фильтры/поиск/сортировку поверх базового
+        f = ProductFilter(self.request.GET, queryset=base)
+        qs = f.qs
+        ordering = self.request.GET.get("ordering")
+        if ordering == "price":
+            qs = qs.order_by("price")
+        elif ordering == "-price":
+            qs = qs.order_by("-price")
+        elif ordering == "new":
+            qs = qs.order_by("-created_at")
+        elif ordering == "popular":
+            qs = qs.annotate(cnt=Count("reviews")).order_by("-cnt")
+        return qs
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        ctx = super().get_context_data(**kwargs)
+        ctx["current_category"] = self.category
+        ctx["categories"] = Category.objects.all().order_by("name")
+        ctx["selected_category_id"] = self.category.id
+        return ctx
 
 
 class ProductDetailView(DetailView):
@@ -62,7 +124,6 @@ class ProductDetailView(DetailView):
         ctx = super().get_context_data(**kwargs)
         ctx["reviews"] = self.object.reviews.select_related("user")
         ctx["form"] = ReviewForm()
-        # Ссылка назад: если нет Referer — ведём в каталог
         ctx["back_url"] = self.request.META.get("HTTP_REFERER") or reverse("products:product_list")
         return ctx
 

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Разделы</h1>
+<ul class="list-group">
+    {% for c in categories %}
+    <li class="list-group-item">
+        <a href="{% url 'products:category_detail' c.slug %}">{{ c.name }}</a>
+        {% if c.children.all %}
+        <ul class="mt-2">
+            {% for ch in c.children.all %}
+            <li><a href="{% url 'products:category_detail' ch.slug %}">{{ ch.name }}</a></li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </li>
+    {% empty %}
+    <li class="list-group-item">Разделов нет.</li>
+    {% endfor %}
+</ul>
+{% endblock %}
