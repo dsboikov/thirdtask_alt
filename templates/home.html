@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load static %}
+{% load querystring %}
+{% load chunks %}
+
+{% block content %}
+
+<div id="tilesCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        {% for slide in slider_products|chunks:4 %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <div class="row g-3">
+                {% for p in slide %}
+                <div class="col-6 col-md-3">
+                    <a href="{{ p.get_absolute_url }}" class="text-decoration-none">
+                        <div class="ratio ratio-1x1">
+                            {% if p.image %}
+                            <img src="{{ p.image.url }}" class="w-100 h-100 object-fit-cover rounded"
+                                 alt="{{ p.name }}">
+                            {% else %}
+                            <img src="{% static 'img/placeholder.png' %}" class="w-100 h-100 object-fit-cover rounded"
+                                 alt="{{ p.name }}">
+                            {% endif %}
+                        </div>
+                        <div class="mt-2 text-dark small text-truncate" title="{{ p.name }}">{{ p.name }}</div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#tilesCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Предыдущий</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#tilesCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Следующий</span>
+    </button>
+</div>
+<section class="mb-4">
+    <div class="p-4 bg-primary-subtle rounded">
+        <h2 class="h4 mb-2">Добро пожаловать в MyShop</h2>
+        <p class="mb-0">Лучшие товары по отличным ценам. Быстрая доставка, удобная оплата и качественный сервис.</p>
+    </div>
+</section>
+<form class="row g-2 mb-3">
+    <div class="col-md-2">
+        <input type="number" step="0.01" name="min_price" value="{{ request.GET.min_price }}" class="form-control"
+               placeholder="Мин цена">
+    </div>
+    <div class="col-md-2">
+        <input type="number" step="0.01" name="max_price" value="{{ request.GET.max_price }}" class="form-control"
+               placeholder="Макс цена">
+    </div>
+    <div class="col-md-3">
+        <select name="category" class="form-select">
+            <option value="">Все разделы</option>
+            {% for c in categories %}
+            <option value="{{ c.id }}" {% if selected_category_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select name="ordering" class="form-select">
+            <option value="">Сортировка</option>
+            <option value="price" {% if request.GET.ordering == 'price' %}selected{% endif %}>Цена ↑</option>
+            <option value="-price" {% if request.GET.ordering == '-price' %}selected{% endif %}>Цена ↓</option>
+            <option value="new" {% if request.GET.ordering == 'new' %}selected{% endif %}>Новизна</option>
+            <option value="popular" {% if request.GET.ordering == 'popular' %}selected{% endif %}>Популярность</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-primary w-100">Применить</button>
+    </div>
+</form>
+
+<div class="row">
+    {% for p in products %}
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            <a href="{{ p.get_absolute_url }}">
+                {% if p.image %}
+                <img src="{{ p.image.url }}" class="card-img-top" alt="{{ p.name }}">
+                {% else %}
+                <img src="{% static 'img/placeholder.png' %}" class="card-img-top" alt="{{ p.name }}">
+                {% endif %}
+            </a>
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ p.name }}</h5>
+                <p class="card-text mb-1">{{ p.price }} ₽</p>
+                <p class="text-muted small mb-3">
+                    Раздел: <a href="{% url 'products:category_detail' p.category.slug %}">{{ p.category.name }}</a>
+                </p>
+                <div class="mt-auto d-flex gap-2">
+                    <form action="{% url 'orders:cart_add' p.id %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button class="btn btn-sm btn-primary" {% if p.stock == 0 %}disabled{% endif %}>В корзину
+                        </button>
+                    </form>
+                    <a href="{{ p.get_absolute_url }}" class="btn btn-sm btn-outline-secondary">Подробнее</a>
+                </div>
+                {% if p.stock == 0 %}
+                <div class="text-danger small mt-2">Нет в наличии</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>Нет товаров.</p>
+    {% endfor %}
+</div>
+
+<nav>
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?{% url_replace page=page_obj.previous_page_number %}">Назад</a>
+        </li>
+        {% endif %}
+        <li class="page-item disabled">
+            <span class="page-link">Стр. {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+        </li>
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?{% url_replace page=page_obj.next_page_number %}">Вперед</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endblock %}

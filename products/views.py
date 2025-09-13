@@ -72,6 +72,22 @@ class ProductListView(ListView):
         return ctx
 
 
+class HomeView(ProductListView):
+    template_name = "home.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        N = 12
+        with_img = Product.objects.filter(is_active=True, image__isnull=False).order_by("-created_at")[:N]
+        remain = N - with_img.count()
+        if remain > 0:
+            without_img = Product.objects.filter(is_active=True, image__isnull=True).order_by("-created_at")[:remain]
+        else:
+            without_img = Product.objects.none()
+        ctx["slider_products"] = list(with_img) + list(without_img)
+        return ctx
+
+
 class CategoryListView(ListView):
     template_name = "products/category_list.html"
     model = Category

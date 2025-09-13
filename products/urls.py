@@ -10,7 +10,6 @@ app_name = "products"
 
 # Web
 urlpatterns = [
-    path("", ProductListView.as_view(), name="product_list"),
     path("products/", ProductListView.as_view(), name="product_list"),
     path("categories/", CategoryListView.as_view(), name="category_list"),
     path("category/<slug:slug>/", CategoryDetailView.as_view(), name="category_detail"),

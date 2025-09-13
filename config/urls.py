@@ -3,11 +3,13 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from products.views import HomeView
 
 urlpatterns = [
                   path("admin/", admin.site.urls),
 
                   # Web
+                  path("", HomeView.as_view(), name="home"),
                   path("", include(("products.urls", "products"), namespace="products")),
                   path("", include(("orders.urls", "orders"), namespace="orders")),
                   path("", include(("users.urls", "users"), namespace="users")),
@@ -22,4 +24,3 @@ urlpatterns = [
                   # GraphQL
                   path("", include("graphql_app.urls")),
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
