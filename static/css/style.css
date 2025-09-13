@@ -15,3 +15,10 @@ footer {
 main {
     flex: 1 0 auto;
 }
+
+.carousel-control-next-icon, .carousel-control-prev-icon {
+    width: 4rem;
+    height: 4rem;
+    background-color: #031633;
+    border-radius: .5rem;
+}

@@ -32,6 +32,7 @@
             <li><a href="/products/" class="nav-link px-2">Каталог</a></li>
             <li><a href="/categories/" class="nav-link px-2">Разделы</a></li>
             <li><a href="/api/" class="nav-link px-2">Api</a></li>
+            <li><a href="/graphql/" class="nav-link px-2">GraphQL</a></li>
         </ul>
         <div class="col-md-3 text-end">
             {% if user.is_authenticated %}
@@ -66,19 +67,22 @@
     </div>
 </main>
 <footer class="footer mt-auto bg-dark text-light bg-primary-subtle">
-  <div class="container py-4">
-    <div class="row">
-      <div class="col-md-6">
-        <h5>MyShop</h5>
-        <p class="mb-0">Онлайн-магазин на Django. Все права защищены.</p>
-      </div>
-      <div class="col-md-6 text-md-end mt-3 mt-md-0">
-        <a href="{% url 'products:product_list' %}" class="text-light me-3 text-decoration-none">Каталог</a>
-        <a href="{% url 'products:category_list' %}" class="text-light me-3 text-decoration-none">Разделы</a>
-        <a href="/api/docs/" class="text-light text-decoration-none">API</a>
-      </div>
+    <div class="container py-4">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>MyShop</h5>
+                <p class="mb-0">Онлайн-магазин на Django. Все права защищены.</p>
+            </div>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <a href="{% url 'products:product_list' %}" class="text-light me-3 text-decoration-none">Каталог</a>
+            <a href="{% url 'products:category_list' %}" class="text-light me-3 text-decoration-none">Разделы</a>
+            <a href="/api/" class="text-light text-decoration-none">API</a>
+            <br />
+            <a href="/graphql/" class="text-light me-3 text-decoration-none">GraphQL</a>
+            <a href="/api/docs/" class="text-light text-decoration-none">Доки API</a>
+        </div>
+        </div>
     </div>
-  </div>
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
