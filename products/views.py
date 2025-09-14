@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, List
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Count  # ← добавили Count
+from django.db.models import Q, Count, F
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -12,7 +12,7 @@ from rest_framework import viewsets, permissions, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .models import Product, Category, Review
+from .models import Product, Category, Review, ProductView
 from .filters import ProductFilter
 from .forms import ReviewForm
 from .serializers import (
@@ -99,10 +99,6 @@ class CategoryListView(ListView):
 
 
 class CategoryDetailView(ProductListView):
-    """
-    Страница раздела: использует тот же шаблон и фильтры, но фиксирует базовую выборку по категории и потомкам.
-    """
-
     def get_queryset(self):
         self.category = get_object_or_404(Category, slug=self.kwargs["slug"])
         ids = get_descendant_ids(self.category)
@@ -136,12 +132,27 @@ class ProductDetailView(DetailView):
     slug_url_kwarg = "slug"
     context_object_name = "product"
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self._record_view(request, self.object)
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["reviews"] = self.object.reviews.select_related("user")
         ctx["form"] = ReviewForm()
         ctx["back_url"] = self.request.META.get("HTTP_REFERER") or reverse("products:product_list")
         return ctx
+
+    def _record_view(self, request, product: Product) -> None:
+        if not request.session.session_key:
+            request.session.save()
+        session_key = request.session.session_key or ""
+        ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip() or request.META.get("REMOTE_ADDR")
+        user = request.user if request.user.is_authenticated else None
+        Product.objects.filter(pk=product.pk).update(view_count=F("view_count") + 1)
+        ProductView.objects.create(product=product, user=user, session_key=session_key, ip=ip)
 
 
 @login_required

@@ -7,7 +7,6 @@ from django.db import models
 from django.urls import reverse
 
 
-
 class TimeStampedModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -38,6 +37,7 @@ class Product(TimeStampedModel):
     image = models.ImageField(upload_to="products/", blank=True, null=True)
     is_active = models.BooleanField(default=True)
     stock = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    view_count = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ["-created_at"]
@@ -56,6 +56,25 @@ class Product(TimeStampedModel):
         return float(agg["avg"] or 0.0)
 
 
+class ProductView(models.Model):
+    product = models.ForeignKey(Product, related_name="views", on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    session_key = models.CharField(max_length=40, blank=True, default="")
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["product", "created_at"]),
+            models.Index(fields=["session_key"]),
+        ]
+        verbose_name = "Просмотр товара"
+        verbose_name_plural = "Просмотры товара"
+
+    def __str__(self) -> str:
+        return f"View {self.product} by {self.user or self.session_key} @ {self.created_at}"
+
+
 class Review(TimeStampedModel):
     product = models.ForeignKey(Product, related_name="reviews", on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="reviews", on_delete=models.CASCADE)
@@ -70,4 +89,3 @@ class Review(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.product} — {self.user} ({self.rating})"
-
