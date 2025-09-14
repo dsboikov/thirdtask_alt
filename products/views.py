@@ -5,11 +5,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Q, Count, QuerySet, F
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.views.generic import ListView, DetailView
 
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -181,6 +181,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [permissions.AllowAny]
 
+
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Product.objects.select_related("category").filter(is_active=True)
     serializer_class = ProductSerializer
@@ -201,6 +202,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer.is_valid(raise_exception=True)
         review = serializer.save()
         return Response(ReviewSerializer(review).data, status=status.HTTP_201_CREATED)
+
 
 class CartApiViewSet(viewsets.ViewSet):
     permission_classes = [permissions.AllowAny]

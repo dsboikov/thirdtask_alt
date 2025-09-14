@@ -47,7 +47,7 @@ class ProductViewAdmin(admin.ModelAdmin):
     search_fields = ("product__name", "user__username", "session_key", "ip")
     readonly_fields = ("product", "user", "session_key", "ip", "created_at")
 
-    def has_add_permission(self, request: HttpRequest) -> bool: # запрет ручного добавления
+    def has_add_permission(self, request: HttpRequest) -> bool:  # запрет ручного добавления
         return False
 
     def has_change_permission(self, request: HttpRequest, obj: Optional[ProductView] = None) -> bool:

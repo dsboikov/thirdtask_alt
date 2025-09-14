@@ -3,7 +3,7 @@ from typing import Any
 import graphene
 from graphene_django import DjangoObjectType
 from django.db.models import Sum
-from orders.models import Order, OrderItem
+from orders.models import Order
 from products.models import Product
 
 

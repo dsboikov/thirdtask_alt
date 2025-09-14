@@ -1,11 +1,10 @@
 from __future__ import annotations
-from typing import Any, List
 from django.contrib import admin
 from django.db.models import Sum, F, Count, QuerySet
 from django.db.models.functions import TruncDate
-from django.urls import path, reverse
+from django.urls import path
 from django.template.response import TemplateResponse
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 from django.http import HttpRequest
 from .models import Order, OrderItem
 from products.models import Product, ProductView
