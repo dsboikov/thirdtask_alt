@@ -1,6 +1,9 @@
 from __future__ import annotations
+from typing import Any, ClassVar
 from rest_framework import serializers
 from .models import Category, Product, Review
+from django.contrib.auth.models import User
+from typing import cast
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -10,7 +13,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
+    user: ClassVar[serializers.StringRelatedField] = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Review
@@ -34,21 +37,18 @@ class ProductCreateReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ["rating", "comment"]
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         request = self.context["request"]
         product: Product = self.context["product"]
-        user = request.user
-        # Проверка: отзыв только после покупки (есть OrderItem у пользователя)
         from orders.models import Order
-        has_bought = Order.objects.filter(
-            user=user,
-            items__product=product,
-        ).exclude(status="cancelled").exists()
+        user = cast(User, request.user)
+        # permission IsAuthenticated гарантирует user.is_authenticated
+        has_bought = Order.objects.filter(user=user, items__product=product).exclude(status="cancelled").exists()
         if not has_bought:
             raise serializers.ValidationError("Вы можете оставить отзыв только после покупки товара.")
         return attrs
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, Any]) -> Review:
         product: Product = self.context["product"]
-        user = self.context["request"].user
+        user: User = self.context["request"].user
         return Review.objects.create(product=product, user=user, **validated_data)

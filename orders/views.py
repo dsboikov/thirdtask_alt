@@ -1,10 +1,15 @@
 from __future__ import annotations
+from typing import Any, cast
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.http import HttpRequest, HttpResponse
+from django.db.models import QuerySet
+
 from rest_framework import viewsets, permissions
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
@@ -55,7 +60,6 @@ def checkout(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = CheckoutForm(request.POST)
         if form.is_valid():
-            # Создание заказа через сериализатор (единая логика с API)
             serializer = OrderCreateSerializer(data=form.cleaned_data, context={"request": request})
             serializer.is_valid(raise_exception=True)
             order = serializer.save()
@@ -69,7 +73,7 @@ def checkout(request: HttpRequest) -> HttpResponse:
 # REST API
 
 class IsOwner(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj) -> bool:
+    def has_object_permission(self, request: Request, view: Any, obj: Order) -> bool:
         return obj.user == request.user
 
 
@@ -77,22 +81,23 @@ class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwner]
 
-    def get_queryset(self):
-        return Order.objects.filter(user=self.request.user).prefetch_related("items__product")
+    def get_queryset(self) -> QuerySet[Order]:
+        user: User = cast(User, self.request.user)  # IsAuthenticated гарантирует User
+        return Order.objects.filter(user=user).prefetch_related("items__product")
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> type[OrderCreateSerializer | OrderSerializer]:
         if self.action == "create":
             return OrderCreateSerializer
         return OrderSerializer
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         serializer = OrderCreateSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
         return Response(OrderSerializer(order).data)
 
     @action(detail=True, methods=["patch"])
-    def cancel(self, request, pk=None):
+    def cancel(self, request: Request, pk: int | str | None = None) -> Response:
         order = self.get_object()
         if order.status in ["shipped", "delivered"]:
             return Response({"detail": "Нельзя отменить отправленный/доставленный заказ."}, status=400)

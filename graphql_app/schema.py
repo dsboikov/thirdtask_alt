@@ -1,7 +1,9 @@
+from __future__ import annotations
+from typing import Any
 import graphene
 from graphene_django import DjangoObjectType
 from django.db.models import Sum
-from orders.models import Order
+from orders.models import Order, OrderItem
 from products.models import Product
 
 
@@ -27,7 +29,7 @@ class AnalyticsType(graphene.ObjectType):
 class Query(graphene.ObjectType):
     analytics = graphene.Field(AnalyticsType)
 
-    def resolve_analytics(self, info):
+    def resolve_analytics(self, info: Any) -> AnalyticsType:
         qs = Order.objects.filter(status__in=["paid", "shipped", "delivered"])
         total = qs.aggregate(s=Sum("total_price"))["s"] or 0
         cnt = qs.count()

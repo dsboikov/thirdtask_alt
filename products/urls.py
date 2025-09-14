@@ -1,4 +1,6 @@
-from django.urls import path, include
+from __future__ import annotations
+from typing import List, Union
+from django.urls import path, include, URLPattern, URLResolver
 from rest_framework.routers import DefaultRouter
 from .views import (
     ProductListView, ProductDetailView, add_review,
@@ -6,10 +8,12 @@ from .views import (
     CategoryListView, CategoryDetailView,
 )
 
+
 app_name = "products"
 
+
 # Web
-urlpatterns = [
+urlpatterns: List[Union[URLPattern, URLResolver]] = [
     path("products/", ProductListView.as_view(), name="product_list"),
     path("categories/", CategoryListView.as_view(), name="category_list"),
     path("category/<slug:slug>/", CategoryDetailView.as_view(), name="category_detail"),
@@ -23,7 +27,7 @@ router.register(r"products", ProductViewSet, basename="api-products")
 router.register(r"categories", CategoryViewSet, basename="api-categories")
 router.register(r"cart", CartApiViewSet, basename="api-cart")
 
-api_urlpatterns = [
+api_urlpatterns: List[Union[URLPattern, URLResolver]] = [
     path("", include(router.urls)),
 ]
 

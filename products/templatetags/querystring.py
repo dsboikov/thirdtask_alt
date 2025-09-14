@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Any
 from django import template
 
 
@@ -5,12 +7,7 @@ register = template.Library()
 
 
 @register.simple_tag(takes_context=True)
-def url_replace(context, **kwargs) -> str:
-    """
-    Возвращает querystring с заменой/удалением ключей.
-    Пример: href="?{% url_replace page=2 %}"
-    Чтобы удалить ключ, передайте None: {% url_replace page=None %}
-    """
+def url_replace(context: dict[str, Any], **kwargs: Any) -> str:
     request = context.get("request")
     if not request:
         return ""

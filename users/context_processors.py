@@ -1,12 +1,9 @@
+from __future__ import annotations
+from typing import Any
+from django.http import HttpRequest
 from orders.services.cart import Cart
 
 
-def cart_items_count(request):
-    """
-    Контекстный процессор: добавляет количество товаров в корзине
-    в контекст всех шаблонов.
-    """
-    if request.session.get('cart'):
-        cart = Cart(request)
-        return {'cart_items_count': len(cart)}
-    return {'cart_items_count': 0}
+def cart(request: HttpRequest) -> dict[str, Any]:
+    return {"cart_items_count": len(Cart(request))}
+

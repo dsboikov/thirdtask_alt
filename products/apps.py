@@ -6,7 +6,5 @@ class ProductsConfig(AppConfig):
     name = "products"
     verbose_name = "Каталог"
 
-    def ready(self):
-        # Здесь можно подключать сигналы, если будут
-        # Например: import products.signals
-        pass
+    def ready(self) -> None:  # для mypy
+        return None
