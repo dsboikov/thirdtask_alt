@@ -6,5 +6,6 @@ class UsersConfig(AppConfig):
     name = "users"
     verbose_name = "Пользователи"
 
-    def ready(self):
+    def ready(self) -> None:
         from . import signals  # noqa: F401
+        return None

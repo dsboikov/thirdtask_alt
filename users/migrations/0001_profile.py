@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
 import django.core.validators
+
 
 class Migration(migrations.Migration):
 
@@ -19,9 +19,13 @@ class Migration(migrations.Migration):
                 ("full_name", models.CharField(blank=True, max_length=255, verbose_name="ФИО")),
                 ("phone", models.CharField(
                     blank=True, max_length=16, verbose_name="Телефон",
-                    validators=[django.core.validators.RegexValidator(regex=r'^\+?\d{10,15}$', message="Телефон должен быть в формате +71234567890 или 10–15 цифр.")]
+                    validators=[django.core.validators.RegexValidator(
+                        regex=r'^\+?\d{10,15}$',
+                        message="Телефон должен быть в формате +71234567890 или 10–15 цифр."
+                    )]
                 )),
-                ("user", models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name="profile", to=settings.AUTH_USER_MODEL)),
+                ("user", models.OneToOneField(on_delete=django.db.models.deletion.CASCADE,
+                                              related_name="profile", to=settings.AUTH_USER_MODEL)),
             ],
         ),
     ]

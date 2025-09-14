@@ -7,6 +7,8 @@ WORKDIR /app
 
 RUN pip install --upgrade pip
 RUN pip install poetry
+RUN pip install djangorestframework-stubs
+RUN pip install django-stubs
 
 COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.create false && poetry install --without dev --verbose

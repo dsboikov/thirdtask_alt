@@ -1,8 +1,10 @@
 from __future__ import annotations
+from typing import Any, Dict
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from .models import Profile
+
 
 class UserUpdateForm(forms.ModelForm):
     email = forms.EmailField(
@@ -17,7 +19,7 @@ class UserUpdateForm(forms.ModelForm):
         model = User
         fields = ["username", "email"]
 
-    def clean_email(self):
+    def clean_email(self) -> str:
         email = self.cleaned_data.get("email", "").strip()
         if not email:
             return email
@@ -25,6 +27,7 @@ class UserUpdateForm(forms.ModelForm):
         if qs.exists():
             raise ValidationError("Пользователь с таким email уже существует.")
         return email
+
 
 class ProfileForm(forms.ModelForm):
     full_name = forms.CharField(
@@ -39,6 +42,10 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ["full_name", "phone"]
+        widgets = {
+            "full_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "ФИО"}),
+            "phone": forms.TextInput(attrs={"class": "form-control", "placeholder": "+71234567890"}),
+        }
 
 
 class RegisterForm(forms.ModelForm):
@@ -53,9 +60,8 @@ class RegisterForm(forms.ModelForm):
             "email": forms.EmailInput(attrs={"class": "form-control"}),
         }
 
-    def clean(self):
-        cleaned = super().clean()
+    def clean(self) -> Dict[str, Any]:
+        cleaned: Dict[str, Any] = super().clean() or {}
         if cleaned.get("password") != cleaned.get("password2"):
             self.add_error("password2", "Пароли не совпадают")
         return cleaned
-

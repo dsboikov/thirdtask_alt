@@ -1,5 +1,5 @@
 from __future__ import annotations
-from decimal import Decimal
+from typing import Any
 from rest_framework import serializers
 from .models import Order, OrderItem
 from products.serializers import ProductSerializer
@@ -26,25 +26,23 @@ class OrderSerializer(serializers.ModelSerializer):
 class OrderCreateSerializer(serializers.Serializer):
     shipping_address = serializers.CharField()
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         request = self.context["request"]
         from .services.cart import Cart
         cart = Cart(request)
         if len(cart) == 0:
             raise serializers.ValidationError("Корзина пуста.")
-        # Проверка остатков
         for item in cart:
             if item["quantity"] > item["product"].stock:
                 raise serializers.ValidationError(f"Недостаточно товара: {item['product'].name}")
         return attrs
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, Any]) -> Order:
         request = self.context["request"]
         user = request.user
         from .services.cart import Cart
         cart = Cart(request)
         order = Order.objects.create(user=user, shipping_address=validated_data["shipping_address"], status="paid")
-        # Эмуляция оплаты: статус сразу "paid"
         for item in cart:
             OrderItem.objects.create(
                 order=order,
@@ -52,13 +50,11 @@ class OrderCreateSerializer(serializers.Serializer):
                 quantity=item["quantity"],
                 price=item["price"],
             )
-            # списание остатков
             p: Product = item["product"]
             p.stock -= item["quantity"]
             p.save(update_fields=["stock"])
         order.recalc_total()
         cart.clear()
-        # email уведомления
         from django.core.mail import send_mail
         send_mail(
             subject=f"Заказ #{order.id} подтвержден",

@@ -19,12 +19,13 @@ graphene-django = "^3.2"
 pytest-django = "^4.8"
 factory-boy = "^3.3"
 flake8 = "^7.1"
-mypy = "^1.12"
-django-stubs = "^5.1"
 django-cors-headers = "^4.4"
 whitenoise = "^6.7"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.18.1"
+django-stubs = "^5.2.5"
+djangorestframework-stubs = "^3.16.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

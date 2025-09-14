@@ -1,5 +1,6 @@
 from django.db import migrations
 
+
 def setup_groups(apps, schema_editor):
     Group = apps.get_model("auth", "Group")
     Permission = apps.get_model("auth", "Permission")
@@ -34,9 +35,11 @@ def setup_groups(apps, schema_editor):
     except ContentType.DoesNotExist:
         pass
 
+
 def teardown_groups(apps, schema_editor):
     Group = apps.get_model("auth", "Group")
     Group.objects.filter(name="Content Managers").delete()
+
 
 class Migration(migrations.Migration):
 

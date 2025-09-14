@@ -1,11 +1,12 @@
 from __future__ import annotations
+from typing import cast
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
-from django.shortcuts import redirect, render, get_object_or_404
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import redirect, render
 
 from rest_framework import generics, permissions
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -17,7 +18,7 @@ from .models import Profile
 
 # Web
 
-def register(request):
+def register(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = RegisterForm(request.POST)
         if form.is_valid():
@@ -35,15 +36,15 @@ def register(request):
 
 
 @login_required
-def account(request):
-    user = request.user
+def account(request: HttpRequest) -> HttpResponse:
+    user: User = cast(User, request.user)
     profile, _ = Profile.objects.get_or_create(user=user)
 
     if request.method == "POST":
         if "save_profile" in request.POST:
             uform = UserUpdateForm(request.POST, instance=user)
             pform = ProfileForm(request.POST, instance=profile)
-            pwd_form = PasswordChangeForm(user=user)  # пустая для рендера
+            pwd_form = PasswordChangeForm(user=user)
             if uform.is_valid() and pform.is_valid():
                 uform.save()
                 pform.save()
@@ -55,7 +56,7 @@ def account(request):
             pwd_form = PasswordChangeForm(user=user, data=request.POST)
             if pwd_form.is_valid():
                 pwd_form.save()
-                update_session_auth_hash(request, user)  # чтобы не разлогинило
+                update_session_auth_hash(request, user)  # user: User
                 messages.success(request, "Пароль успешно изменён.")
                 return redirect("users:account")
         else:
@@ -67,7 +68,7 @@ def account(request):
         pform = ProfileForm(instance=profile)
         pwd_form = PasswordChangeForm(user=user)
 
-    orders = request.user.orders.select_related().all()
+    orders = user.orders.select_related().all()
     return render(
         request,
         "account/profile.html",
