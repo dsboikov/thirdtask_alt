@@ -6,7 +6,5 @@ class OrdersConfig(AppConfig):
     name = "orders"
     verbose_name = "Заказы"
 
-    def ready(self):
-        # Здесь можно подключать сигналы, если будут
-        # Например: import orders.signals
-        pass
+    def ready(self) -> None:
+        return None

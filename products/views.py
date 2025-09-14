@@ -1,16 +1,19 @@
 from __future__ import annotations
-
-from typing import Any, List
+from typing import Any, Optional, cast
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Count, F
+from django.contrib.auth.models import User
+from django.db.models import Q, Count, QuerySet, F
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.views.generic import ListView, DetailView
-from rest_framework import viewsets, permissions, mixins, status
+
+from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.request import Request
+from rest_framework import status
 
 from .models import Product, Category, Review, ProductView
 from .filters import ProductFilter
@@ -23,11 +26,11 @@ from orders.services.cart import Cart
 
 # Хэлпер для потомков категории
 def get_descendant_ids(root: Category) -> list[int]:
-    ids: List[int] = [root.id]
-    level = [root.id]
+    ids: list[int] = [root.id]
+    level: list[int] = [root.id]
     while level:
-        children = Category.objects.filter(parent_id__in=level).values_list("id", flat=True)
-        children = list(children)
+        children_qs = Category.objects.filter(parent_id__in=level).values_list("id", flat=True)
+        children: list[int] = list(children_qs)
         if not children:
             break
         ids.extend(children)
@@ -42,16 +45,13 @@ class ProductListView(ListView):
     context_object_name = "products"
     paginate_by = 12
 
-    def get_queryset(self):
-        qs = Product.objects.select_related("category").filter(is_active=True)
-        # Поиск
+    def get_queryset(self) -> QuerySet[Product]:
+        qs: QuerySet[Product] = Product.objects.select_related("category").filter(is_active=True)
         q = self.request.GET.get("q")
         if q:
             qs = qs.filter(Q(name__icontains=q) | Q(description__icontains=q))
-        # Фильтры (включая category/id и category_slug)
         f = ProductFilter(self.request.GET, queryset=qs)
         qs = f.qs
-        # Сортировка
         ordering = self.request.GET.get("ordering")
         if ordering == "price":
             qs = qs.order_by("price")
@@ -75,7 +75,7 @@ class ProductListView(ListView):
 class HomeView(ProductListView):
     template_name = "home.html"
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         ctx = super().get_context_data(**kwargs)
         N = 12
         with_img = Product.objects.filter(is_active=True, image__isnull=False).order_by("-created_at")[:N]
@@ -93,15 +93,15 @@ class CategoryListView(ListView):
     model = Category
     context_object_name = "categories"
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Category]:
         return Category.objects.filter(parent__isnull=True).prefetch_related("children").order_by("name")
 
 
 class CategoryDetailView(ProductListView):
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Product]:
         self.category = get_object_or_404(Category, slug=self.kwargs["slug"])
         ids = get_descendant_ids(self.category)
-        base = Product.objects.select_related("category").filter(is_active=True, category_id__in=ids)
+        base: QuerySet[Product] = Product.objects.select_related("category").filter(is_active=True, category_id__in=ids)
         f = ProductFilter(self.request.GET, queryset=base)
         qs = f.qs
         ordering = self.request.GET.get("ordering")
@@ -130,20 +130,20 @@ class ProductDetailView(DetailView):
     slug_url_kwarg = "slug"
     context_object_name = "product"
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         self.object = self.get_object()
         self._record_view(request, self.object)
         context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         ctx = super().get_context_data(**kwargs)
         ctx["reviews"] = self.object.reviews.select_related("user")
         ctx["form"] = ReviewForm()
         ctx["back_url"] = self.request.META.get("HTTP_REFERER") or reverse("products:product_list")
         return ctx
 
-    def _record_view(self, request, product: Product) -> None:
+    def _record_view(self, request: HttpRequest, product: Product) -> None:
         if not request.session.session_key:
             request.session.save()
         session_key = request.session.session_key or ""
@@ -158,15 +158,14 @@ def add_review(request: HttpRequest, slug: str) -> HttpResponse:
     product = get_object_or_404(Product, slug=slug, is_active=True)
     form = ReviewForm(request.POST)
     if form.is_valid():
-        # Бизнес-правило: отзыв только после покупки
         from orders.models import Order
-        has_bought = Order.objects.filter(user=request.user, items__product=product).exclude(
-            status="cancelled").exists()
+        user = cast(User, request.user)
+        has_bought = Order.objects.filter(user=user, items__product=product).exclude(status="cancelled").exists()
         if not has_bought:
             messages.error(request, "Оставлять отзыв можно только после покупки.")
             return redirect(product.get_absolute_url())
         Review.objects.update_or_create(
-            product=product, user=request.user,
+            product=product, user=user,
             defaults=form.cleaned_data
         )
         messages.success(request, "Спасибо! Ваш отзыв сохранен.")
@@ -192,7 +191,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
 
     @action(detail=True, methods=["get", "post"], permission_classes=[permissions.IsAuthenticated])
-    def reviews(self, request, pk=None):
+    def reviews(self, request: Request, pk: Optional[str] = None) -> Response:
         product = self.get_object()
         if request.method == "GET":
             qs = product.reviews.select_related("user").all()
@@ -206,31 +205,40 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CartApiViewSet(viewsets.ViewSet):
-    """
-    API для корзины на сессиях.
-    """
     permission_classes = [permissions.AllowAny]
 
-    def list(self, request):
+    def list(self, request: Request) -> Response:
         cart = Cart(request)
         return Response(cart.to_dict())
 
-    def create(self, request):
-        # POST: {"product_id": 1, "quantity": 2}
-        product_id = int(request.data.get("product_id"))
-        quantity = int(request.data.get("quantity", 1))
+    def create(self, request: Request) -> Response:
+        pid_raw: Any = request.data.get("product_id")
+        if pid_raw is None:
+            return Response({"detail": "product_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            product_id: int = int(pid_raw)
+        except (TypeError, ValueError):
+            return Response({"detail": "product_id must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
+
+        qty_raw: Any = request.data.get("quantity", 1)
+        try:
+            quantity: int = int(qty_raw)
+        except (TypeError, ValueError):
+            return Response({"detail": "quantity must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
+        if quantity < 1:
+            return Response({"detail": "quantity must be >= 1"}, status=status.HTTP_400_BAD_REQUEST)
+
         product = get_object_or_404(Product, pk=product_id, is_active=True)
         Cart(request).add(product=product, quantity=quantity, override=False)
         return Response(Cart(request).to_dict(), status=status.HTTP_201_CREATED)
 
-    def partial_update(self, request, pk=None):
-        # PATCH /api/cart/{product_id}/ {"quantity": 3}
+    def partial_update(self, request: Request, pk: Optional[str] = None) -> Response:
         product = get_object_or_404(Product, pk=pk)
         qty = int(request.data.get("quantity", 1))
         Cart(request).add(product, qty, override=True)
         return Response(Cart(request).to_dict())
 
-    def destroy(self, request, pk=None):
+    def destroy(self, request: Request, pk: Optional[str] = None) -> Response:
         product = get_object_or_404(Product, pk=pk)
         Cart(request).remove(product)
         return Response(Cart(request).to_dict(), status=status.HTTP_204_NO_CONTENT)

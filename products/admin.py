@@ -1,6 +1,9 @@
+from __future__ import annotations
+from typing import Any, Optional
+from django.http import HttpRequest
 from django.contrib import admin
-from django.db.models import Avg, Count
-from products.models import Category, Product, Review, ProductView
+from django.db.models import Avg, QuerySet
+from .models import Category, Product, Review, ProductView
 
 
 @admin.register(Category)
@@ -19,14 +22,14 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ("name", "description")
     autocomplete_fields = ("category",)
 
-    def get_queryset(self, request):
+    def get_queryset(self, request: Any) -> QuerySet[Product]:
         qs = super().get_queryset(request)
         return qs.annotate(_avg=Avg("reviews__rating"))
 
-    def avg_rating(self, obj):
-        return round(obj._avg or 0, 2)
-
-    avg_rating.short_description = "Средний рейтинг"
+    @admin.display(description="Средний рейтинг")
+    def avg_rating(self, obj: Product) -> float:
+        val = getattr(obj, "_avg", None)
+        return round(float(val or 0.0), 2)
 
 
 @admin.register(Review)
@@ -44,8 +47,8 @@ class ProductViewAdmin(admin.ModelAdmin):
     search_fields = ("product__name", "user__username", "session_key", "ip")
     readonly_fields = ("product", "user", "session_key", "ip", "created_at")
 
-    def has_add_permission(self, request):  # запрет ручного добавления
+    def has_add_permission(self, request: HttpRequest) -> bool:  # запрет ручного добавления
         return False
 
-    def has_change_permission(self, request, obj=None):
+    def has_change_permission(self, request: HttpRequest, obj: Optional[ProductView] = None) -> bool:
         return False
