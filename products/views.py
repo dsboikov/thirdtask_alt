@@ -68,7 +68,7 @@ class ProductListView(ListView):
         ctx["categories"] = Category.objects.all().order_by("name")
         selected = self.request.GET.get("category")
         ctx["selected_category_id"] = int(selected) if selected and selected.isdigit() else None
-        ctx["current_category"] = None  # для совместимости с шаблоном
+        ctx["current_category"] = None
         return ctx
 
 
@@ -94,7 +94,6 @@ class CategoryListView(ListView):
     context_object_name = "categories"
 
     def get_queryset(self):
-        # Топ-уровень с prefetch детей (1 уровень для простоты)
         return Category.objects.filter(parent__isnull=True).prefetch_related("children").order_by("name")
 
 
@@ -103,7 +102,6 @@ class CategoryDetailView(ProductListView):
         self.category = get_object_or_404(Category, slug=self.kwargs["slug"])
         ids = get_descendant_ids(self.category)
         base = Product.objects.select_related("category").filter(is_active=True, category_id__in=ids)
-        # Применяем остальные фильтры/поиск/сортировку поверх базового
         f = ProductFilter(self.request.GET, queryset=base)
         qs = f.qs
         ordering = self.request.GET.get("ordering")
