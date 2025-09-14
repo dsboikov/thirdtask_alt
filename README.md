@@ -16,7 +16,7 @@
 - Клонируйте репозиторий: `git clone https://github.com/dsboikov/thirdtask_alt.git`
 - Установите Poetry: `pip install poetry`
 - Установите зависимости: `poetry install`
-- Запустите через Docker: `docker-compose up`
+- Запустите через Docker: `docker-compose up --build -d`
 - Миграции: `docker-compose exec web python manage.py migrate`
 - Создайте суперюзера: `docker-compose exec web python manage.py createsuperuser`
 - Доступ: http://localhost:8000 (веб), /api/docs/ (Swagger), /graphql/ (GraphQL)
