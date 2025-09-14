@@ -58,7 +58,7 @@ class Product(TimeStampedModel):
 
 class ProductView(models.Model):
     product = models.ForeignKey(Product, related_name="views", on_delete=models.CASCADE)
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     session_key = models.CharField(max_length=40, blank=True, default="")
     ip = models.GenericIPAddressField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

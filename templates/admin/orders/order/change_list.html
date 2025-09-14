@@ -1,0 +1,15 @@
+{% extends "admin/change_list.html" %}
+{% block object-tools-items %}
+<li>
+    <a href="{{ analytics_url }}" class="historylink">Аналитика</a>
+</li>
+{{ block.super }}
+{% endblock %}
+
+{% block result_list %}
+<div class="card" style="padding:12px; margin-bottom:12px;">
+    <strong>Выручка (paid/shipped/delivered):</strong> {{ revenue }} —
+    <strong>Позиции всего:</strong> {{ items_count }}
+</div>
+{{ block.super }}
+{% endblock %}
