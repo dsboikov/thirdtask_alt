@@ -24,7 +24,7 @@
             {% for p in top_viewed %}
             <li>
                 <a href="{% url 'admin:products_product_change' p.id %}">{{ p.name }}</a>
-                — {{ p.view_count|default:p.v }}
+                — {{ p.view_count|default:0 }}
             </li>
             {% endfor %}
         </ol>
@@ -91,7 +91,7 @@
     }
 
     .dashboard .module {
-        background: #fff;
+        background: #515151;
         border: 1px solid #ddd;
         padding: 12px;
         border-radius: 4px;

@@ -51,10 +51,9 @@ class OrderAdmin(admin.ModelAdmin):
         # Просмотры товаров
         total_views = ProductView.objects.count()
         top_viewed = (
-            Product.objects.values("id", "name").annotate(v=Sum("views__id")).order_by("-v")[:10]
+            Product.objects.order_by("-view_count")
+            .values("id", "name", "view_count")[:10]
         )
-        # Для экономии запроса можно брать по view_count
-        top_viewed = Product.objects.order_by("-view_count").values("id", "name", "view_count")[:10]
 
         # Заказы по суткам (последние 14)
         from django.utils import timezone
