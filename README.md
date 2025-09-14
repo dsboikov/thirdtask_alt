@@ -5,6 +5,12 @@
 За маршрутизацию отвечает Django.
 За хранение информации о сохранённых файлах отвечает PostgreSQL
 
+**Требования**
+- Docker
+- Docker-compose
+- Python3.13
+- Git
+
 **Установка и запуск**
 
 - Клонируйте репозиторий: `git clone https://github.com/dsboikov/thirdtask_alt.git`
