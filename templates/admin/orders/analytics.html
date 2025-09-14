@@ -1,0 +1,115 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+{% block title %}Аналитика{% endblock %}
+{% block content %}
+<h1>Аналитика магазина</h1>
+
+<div class="dashboard">
+    <div class="module">
+        <h2>Заказы</h2>
+        <p><strong>Всего заказов:</strong> {{ orders_count }}</p>
+        <ul>
+            {% for s in by_status %}
+            <li>{{ s.status }} — {{ s.c }}</li>
+            {% endfor %}
+        </ul>
+        <p><strong>Выручка (paid/shipped/delivered):</strong> {{ revenue }}</p>
+    </div>
+
+    <div class="module">
+        <h2>Просмотры товаров</h2>
+        <p><strong>Всего просмотров:</strong> {{ total_views }}</p>
+        <h3>Топ-10 по просмотрам</h3>
+        <ol>
+            {% for p in top_viewed %}
+            <li>
+                <a href="{% url 'admin:products_product_change' p.id %}">{{ p.name }}</a>
+                — {{ p.view_count|default:0 }}
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+
+    <div class="module">
+        <h2>Топ-10 продаж</h2>
+        <ol>
+            {% for it in top_sold %}
+            <li>{{ it.product__name }} — {{ it.qty }} шт. (на {{ it.sum }} ₽)</li>
+            {% endfor %}
+        </ol>
+    </div>
+
+    <div class="module">
+        <h2>Динамика заказов (последние 14 дней)</h2>
+        <table class="listing">
+            <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Кол-во</th>
+                <th>Сумма</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for d in daily %}
+            <tr>
+                <td>{{ d.day }}</td>
+                <td>{{ d.c }}</td>
+                <td>{{ d.sum }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">Нет данных</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="module">
+        <h2>Пользователи</h2>
+        <ul>
+            <li>Всего зарегистрированных: {{ user_split.registered }}</li>
+            <li>Администраторы: {{ user_split.admins }}</li>
+            <li>Контент‑менеджеры: {{ user_split.cms }}</li>
+            <li>Остальные пользователи: {{ user_split.regular }}</li>
+        </ul>
+        <h3>Просмотры по типам пользователей</h3>
+        <ul>
+            <li>Анонимные: {{ user_split.views.anon }}</li>
+            <li>Администраторы: {{ user_split.views.admins }}</li>
+            <li>Контент‑менеджеры: {{ user_split.views.cms }}</li>
+            <li>Остальные зарегистрированные: {{ user_split.views.users }}</li>
+        </ul>
+    </div>
+</div>
+
+<style>
+    .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 16px;
+    }
+
+    .dashboard .module {
+        background: #515151;
+        border: 1px solid #ddd;
+        padding: 12px;
+        border-radius: 4px;
+    }
+
+    .module h3 {
+        margin-top: 8px;
+    }
+
+    .listing {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .listing th, .listing td {
+        border: 1px solid #ddd;
+        padding: 6px 8px;
+    }
+</style>
+
+{% endblock %}
