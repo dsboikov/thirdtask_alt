@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Оформление заказа</h2>
+<form method="post" class="card card-body">
+    {% csrf_token %}
+    <div class="mb-3">
+        {{ form.shipping_address.label_tag }}
+        {{ form.shipping_address }}
+    </div>
+    <div class="mb-3">
+        {{ form.payment_method.label_tag }}
+        {{ form.payment_method }}
+    </div>
+    <button class="btn btn-success">Создать заказ</button>
+</form>
+{% endblock %}

@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "task3_alt"
+package-mode = false
+version = "0.1.1"
+description = "Online store project"
+authors = ["Denis <dsboikov@yandex.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+django = "^5.2"
+djangorestframework = "^3.15"
+psycopg2-binary = "^2.9"
+pillow = "^11.0"
+django-filter = "^24.3"
+djangorestframework-simplejwt = "^5.3"
+drf-spectacular = "^0.27"
+graphene-django = "^3.2"
+pytest-django = "^4.8"
+factory-boy = "^3.3"
+flake8 = "^7.1"
+mypy = "^1.12"
+django-stubs = "^5.1"
+django-cors-headers = "^4.4"
+whitenoise = "^6.7"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

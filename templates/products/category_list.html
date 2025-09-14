@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Разделы</h1>
+<section class="mb-4">
+    <div class="p-4 bg-primary-subtle rounded">
+        <h2 class="h4 mb-2">Добро пожаловать в MyShop</h2>
+        <p class="mb-0">Здесь находится список разделов по типу дерева сайта.<br />
+            Выберите нужный раздел и перейдёте на список товаров этого раздела</p>
+    </div>
+</section>
+<nav class="nav navbar-nav flex-column navbar-expand-lg bg-body-tertiary border-bottom border-body">
+    <div class="container-fluid p-3">
+    {% for c in categories %}
+        {% if c.children.all %}
+        <div class="collapse navbar-collapse">
+        <ul class="navbar-nav">
+            <li class="nav-item px-2">
+                <a class="nav-link btn btn-outline-secondary btn-sm px-2" href="{% url 'products:category_detail' c.slug %}">{{ c.name }}</a>
+            </li>
+            {% for ch in c.children.all %}
+                <li class="nav-item px-2">
+                    <a class="nav-link btn btn-outline-secondary btn-sm px-2" href="{% url 'products:category_detail' ch.slug %}">{{ ch.name }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+            </div>
+        {% else %}
+        <li class="nav-item collapse navbar-collapse m-2">
+            <a class="nav-link btn btn-outline-secondary btn-sm px-2" href="{% url 'products:category_detail' c.slug %}">{{ c.name }}</a>
+        </li>
+        {% endif %}
+    {% empty %}
+    <h3>Разделов нет.</h3>
+    {% endfor %}
+    <div>
+</nav>
+{% endblock %}

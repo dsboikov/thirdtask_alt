@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Личный кабинет</h2>
+
+<div class="row">
+  <div class="col-lg-6">
+    <div class="card mb-4">
+      <div class="card-header">Мои данные</div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" for="{{ uform.username.id_for_label }}">Логин</label>
+            {{ uform.username }}
+            {% for e in uform.username.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="{{ uform.email.id_for_label }}">Email</label>
+            {{ uform.email }}
+            {% for e in uform.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="{{ pform.full_name.id_for_label }}">ФИО</label>
+            {{ pform.full_name }}
+            {% for e in pform.full_name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="{{ pform.phone.id_for_label }}">Телефон</label>
+            {{ pform.phone }}
+            {% for e in pform.phone.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <button class="btn btn-primary" name="save_profile" value="1">Сохранить</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card mb-4">
+      <div class="card-header">Смена пароля</div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" for="{{ pwd_form.old_password.id_for_label }}">Текущий пароль</label>
+            {{ pwd_form.old_password }}
+            {% for e in pwd_form.old_password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="{{ pwd_form.new_password1.id_for_label }}">Новый пароль</label>
+            {{ pwd_form.new_password1 }}
+            {% for e in pwd_form.new_password1.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="{{ pwd_form.new_password2.id_for_label }}">Повторите пароль</label>
+            {{ pwd_form.new_password2 }}
+            {% for e in pwd_form.new_password2.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <button class="btn btn-outline-primary" name="change_password" value="1">Изменить пароль</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h4>Мои заказы</h4>
+<table class="table">
+  <thead><tr><th>#</th><th>Статус</th><th>Сумма</th><th>Дата</th></tr></thead>
+  <tbody>
+  {% for o in orders %}
+    <tr>
+      <td>{{ o.id }}</td>
+      <td>{{ o.status }}</td>
+      <td>{{ o.total_price }} ₽</td>
+      <td>{{ o.created_at }}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="4">Заказов нет.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
