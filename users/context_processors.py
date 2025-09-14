@@ -1,5 +1,6 @@
 from orders.services.cart import Cart
 
+
 def cart_items_count(request):
     """
     Контекстный процессор: добавляет количество товаров в корзине

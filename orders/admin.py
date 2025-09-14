@@ -1,11 +1,11 @@
 from django.contrib import admin
-from django.db.models import Sum, Count, Q, F
+from django.db.models import Sum, Count, F
 from django.urls import path, reverse
-from django.utils.html import format_html
 from django.template.response import TemplateResponse
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 from .models import Order, OrderItem
 from products.models import Product, ProductView
+
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
@@ -69,7 +69,6 @@ class OrderAdmin(admin.ModelAdmin):
 
         # Пользователи и группы
         cm_group_name = "Content Managers"
-        cm_group = Group.objects.filter(name=cm_group_name).first()
         admins = User.objects.filter(is_superuser=True).count()
         cms = User.objects.filter(groups__name=cm_group_name).distinct().count()
         registered = User.objects.count()
@@ -100,7 +99,8 @@ class OrderAdmin(admin.ModelAdmin):
 
     def changelist_view(self, request, extra_context=None):
         qs = self.get_queryset(request)
-        revenue = qs.filter(status__in=["paid", "shipped", "delivered"]).aggregate(total=Sum("total_price"))["total"] or 0
+        revenue = qs.filter(status__in=["paid", "shipped", "delivered"]).aggregate(total=Sum("total_price"))[
+                      "total"] or 0
         items_count = OrderItem.objects.aggregate(total=Sum("quantity"))["total"] or 0
         extra = extra_context or {}
         extra.update({
@@ -113,9 +113,11 @@ class OrderAdmin(admin.ModelAdmin):
     def mark_shipped(self, request, queryset):
         updated = queryset.filter(status="paid").update(status="shipped")
         self.message_user(request, f"Отмечено как отправлено: {updated}")
+
     mark_shipped.short_description = "Отметить как отправлено (для оплаченных)"
 
     def mark_cancelled(self, request, queryset):
         updated = queryset.exclude(status__in=["shipped", "delivered"]).update(status="cancelled")
         self.message_user(request, f"Отменено: {updated}")
+
     mark_cancelled.short_description = "Отменить (кроме отправленных/доставленных)"

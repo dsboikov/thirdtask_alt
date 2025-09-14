@@ -39,7 +39,7 @@ class ProductCreateReviewSerializer(serializers.ModelSerializer):
         product: Product = self.context["product"]
         user = request.user
         # Проверка: отзыв только после покупки (есть OrderItem у пользователя)
-        from orders.models import Order, OrderItem
+        from orders.models import Order
         has_bought = Order.objects.filter(
             user=user,
             items__product=product,

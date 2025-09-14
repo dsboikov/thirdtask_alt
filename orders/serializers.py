@@ -1,5 +1,4 @@
 from __future__ import annotations
-from decimal import Decimal
 from rest_framework import serializers
 from .models import Order, OrderItem
 from products.serializers import ProductSerializer

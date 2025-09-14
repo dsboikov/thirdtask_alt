@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.db.models import Avg, Count
+from django.db.models import Avg
 from products.models import Category, Product, Review, ProductView
 
 

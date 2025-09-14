@@ -8,6 +8,7 @@ phone_validator = RegexValidator(
     message="Телефон должен быть в формате +71234567890 или 10–15 цифр."
 )
 
+
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
     full_name = models.CharField("ФИО", max_length=255, blank=True)
